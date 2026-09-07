@@ -1,16 +1,7 @@
 import { createMcpHandler } from "mcp-handler";
 import { z } from "zod";
 
-import {
-  createTodo,
-  createTodoSchema,
-  deleteTodo,
-  getTodo,
-  listTodos,
-  todoIdSchema,
-  updateTodo,
-  updateTodoSchema,
-} from "@/lib/todos";
+import { getTodo, todoIdSchema } from "@/lib/todos";
 
 function result(data: unknown) {
   return {
@@ -45,18 +36,20 @@ const handler = createMcpHandler((server) => {
     {
       title: "Get Todo",
       description: "Get a todo by its ID",
-      inputSchema: z.object({}),
+      inputSchema: z.object({
+        id: todoIdSchema.describe("The ID of the todo to retrieve"),
+      }),
     },
-    () => runTool(async () => result(await getTodo())),
-  );
-  server.registerTool(
-    "create_todo",
-    {
-      title: "Create Todo",
-      description: "Create a new todo",
-      inputSchema: z.object({}),
-    },
-    () => runTool(async () => result(await createTodo())),
+    ({ id }) =>
+      runTool(async () => {
+        const todo = await getTodo(id);
+
+        if (!todo) {
+          return failure("Nie znaleziono elementu Todo.");
+        }
+
+        return result(todo);
+      }),
   );
 });
 
