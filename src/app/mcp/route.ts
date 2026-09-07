@@ -1,7 +1,7 @@
 import { createMcpHandler } from "mcp-handler";
 import { z } from "zod";
 
-import { getTodo, todoIdSchema } from "@/lib/todos";
+import { createTodo, getTodo, todoIdSchema } from "@/lib/todos";
 
 function result(data: unknown) {
   return {
@@ -49,6 +49,21 @@ const handler = createMcpHandler((server) => {
         }
 
         return result(todo);
+      }),
+  );
+  server.registerTool(
+    "create_todo",
+    {
+      title: "Create Todo",
+      description: "Create a new todo",
+      inputSchema: z.object({
+        title: z.string().describe("The title of the todo"),
+        description: z.string().describe("The description of the todo"),
+      }),
+    },
+    ({ title }) =>
+      runTool(async () => {
+        return result(await createTodo({ title }));
       }),
   );
 });
